@@ -362,6 +362,38 @@ public:
       : OSTargetInfo<Target>(Triple, Opts) {}
 };
 
+// Kot Target
+template <typename Target>
+class LLVM_LIBRARY_VISIBILITY KotTargetInfo : public OSTargetInfo<Target> {
+protected:
+  void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
+                    MacroBuilder &Builder) const override {
+    // Kot defines; list based off of gcc output
+    Builder.defineMacro("__Kot__");
+    Builder.defineMacro("__unix__");
+    Builder.defineMacro("__ELF__");
+    if (Opts.POSIXThreads)
+      Builder.defineMacro("_REENTRANT");
+    if (this->HasFloat128)
+      Builder.defineMacro("__FLOAT128__");
+  }
+
+public:
+  KotTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
+      : OSTargetInfo<Target>(Triple, Opts) {
+        this->WIntType = TargetInfo::UnsignedInt;
+
+    switch (Triple.getArch()) {
+      default:
+        break;
+      case llvm::Triple::x86:
+      case llvm::Triple::x86_64:
+        this->HasFloat128 = true;
+        break;
+    }
+  }
+};
+
 // Linux target
 template <typename Target>
 class LLVM_LIBRARY_VISIBILITY LinuxTargetInfo : public OSTargetInfo<Target> {

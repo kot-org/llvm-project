@@ -178,6 +178,7 @@ public:
     Fuchsia,
     IOS,
     KFreeBSD,
+    Kot,
     Linux,
     Lv2,        // PS3
     MacOSX,
