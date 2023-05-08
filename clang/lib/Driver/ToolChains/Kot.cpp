@@ -1,12 +1,16 @@
 #include "Kot.h"
+#include "CommonArgs.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Option/ArgList.h"
-#include "clang/Config/config.h"
 #include "clang/Driver/Driver.h"
+#include "clang/Config/config.h"
 #include "clang/Driver/Options.h"
 #include "llvm/Support/FileSystem.h"
+#include "clang/Driver/Compilation.h"
 #include "clang/Driver/SanitizerArgs.h"
+#include "clang/Driver/DriverDiagnostic.h"
 #include "llvm/Support/VirtualFileSystem.h"
+
 
 using namespace clang::driver;
 using namespace clang::driver::toolchains;
@@ -16,7 +20,10 @@ using namespace llvm::opt;
 
 using tools::addMultilibFlag;
 
-void Kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputInfo &Output, const InputInfoList &Inputs, const ArgList &Args, const char *LinkingOutput) const{
+// cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -DLLVM_USE_LINKER=lld -G "Ninja" ../llvm
+// ninja all -j4
+
+void kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputInfo &Output, const InputInfoList &Inputs, const ArgList &Args, const char *LinkingOutput) const{
   const toolchains::Kot &ToolChain = static_cast<const toolchains::Kot&>(getToolChain());
   const Driver &D = ToolChain.getDriver();
 
@@ -96,7 +103,7 @@ void Kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputI
     }
   }
 
-  C.addCommand(std::make_unique<Command>(JA, *this, Exec, CmdArgs, Inputs));
+  C.addCommand(std::make_unique<Command>(JA, *this, ResponseFileSupport::AtFileUTF8(), Exec, CmdArgs, Inputs, Output));
 }
 
 Kot::Kot(const Driver &D, const llvm::Triple &Triple, const ArgList &Args):ToolChain(D, Triple, Args){
@@ -113,7 +120,7 @@ std::string Kot::ComputeEffectiveClangTriple(const ArgList &Args, types::ID Inpu
 }
 
 Tool* Kot::buildLinker() const{
-  return new tools::Kot::Linker(*this);
+  return new tools::kot::Linker(*this);
 }
 
 ToolChain::RuntimeLibType Kot::GetRuntimeLibType(const ArgList &Args) const{
@@ -151,9 +158,7 @@ void Kot::addClangTargetOptions(const ArgList &DriverArgs, ArgStringList &CC1Arg
   CC1Args.push_back("-fdata-sections");
 
   // wrap stdint
-  SmallString<128> P("-include ");
-  llvm::sys::path::append(P, getDriver().SysRoot, "stdint-wrap.h");
-  CC1Args.push_back(P);
+  CC1Args.append({"-include", DriverArgs.MakeArgString(getDriver().SysRoot), "stdint-wrap.h"});
 }
 
 void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC1Args) const{
