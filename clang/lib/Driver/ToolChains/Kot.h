@@ -81,7 +81,7 @@ namespace clang{
                     }
 
                     LangOptions::StackProtectorMode GetDefaultStackProtectorLevel(bool KernelOrKext) const override{
-                        return 2; // SSPStrong
+                        return LangOptions::StackProtectorMode::SSPStrong;
                     }
 
                     std::string ComputeEffectiveClangTriple(const llvm::opt::ArgList &Args, types::ID InputType) const override;
