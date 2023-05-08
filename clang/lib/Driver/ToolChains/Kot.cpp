@@ -43,22 +43,19 @@ void kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputI
     CmdArgs.push_back(Args.MakeArgString("--sysroot=" + D.SysRoot));
   }
 
-  if(Args.hasArg(options::OPT_s)){
-    CmdArgs.push_back("-s");
-  }
-
-  if(Args.hasArg(options::OPT_static)){
-    CmdArgs.push_back("-Bstatic");
-  }else if(Args.hasArg(options::OPT_shared)){
-    CmdArgs.push_back("-shared");
-  }
+  // force static
+  CmdArgs.push_back("-static");
 
   CmdArgs.push_back("-o");
   CmdArgs.push_back(Output.getFilename());
 
   if(!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles)){
     if(!Args.hasArg(options::OPT_shared)){
-      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crt0.o")));
+      if(!D.SysRoot.empty()){
+        SmallString<128> P(D.SysRoot);
+        llvm::sys::path::append(P, "lib/crt0.o");
+        CmdArgs.push_back(Args.MakeArgString(P));
+      }
     }
   }
 
@@ -75,29 +72,6 @@ void kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputI
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
   if(!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)){
-    if(Args.hasArg(options::OPT_static)){
-      CmdArgs.push_back("-Bdynamic");
-    }
-
-    if(D.CCCIsCXX()){
-      if(ToolChain.ShouldLinkCXXStdlib(Args)){
-        bool OnlyLibstdcxxStatic = Args.hasArg(options::OPT_static_libstdcxx) && !Args.hasArg(options::OPT_static);
-        CmdArgs.push_back("--push-state");
-        CmdArgs.push_back("--as-needed");
-        if(OnlyLibstdcxxStatic){
-          CmdArgs.push_back("-Bstatic");
-        }
-        ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
-        if(OnlyLibstdcxxStatic){
-          CmdArgs.push_back("-Bdynamic");
-        }
-        CmdArgs.push_back("-lm");
-        CmdArgs.push_back("--pop-state");
-      }
-    }
-
-    AddRunTimeLibs(ToolChain, D, CmdArgs, Args);
-
     if(!Args.hasArg(options::OPT_nolibc)){
       CmdArgs.push_back("-lc");
     }
@@ -156,9 +130,6 @@ void Kot::addClangTargetOptions(const ArgList &DriverArgs, ArgStringList &CC1Arg
 
   CC1Args.push_back("-ffunction-sections");
   CC1Args.push_back("-fdata-sections");
-
-  // wrap stdint
-  CC1Args.append({"-include", DriverArgs.MakeArgString(getDriver().SysRoot), "stdint-wrap.h"});
 }
 
 void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC1Args) const{
@@ -182,6 +153,10 @@ void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC
     SmallString<128> P(D.SysRoot);
     llvm::sys::path::append(P, "include");
     addExternCSystemInclude(DriverArgs, CC1Args, P.str());
+    // wrap stdint
+    CC1Args.push_back("-idirafter");
+    CC1Args.push_back(DriverArgs.MakeArgString(P));
+    CC1Args.append({"-include", "stdint-wrap.h"});
   }
 }
 
