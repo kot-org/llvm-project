@@ -20,9 +20,6 @@ using namespace llvm::opt;
 
 using tools::addMultilibFlag;
 
-// cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -DLLVM_USE_LINKER=lld -G "Ninja" ../llvm
-// ninja all -j4
-
 void kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputInfo &Output, const InputInfoList &Inputs, const ArgList &Args, const char *LinkingOutput) const{
   const toolchains::Kot &ToolChain = static_cast<const toolchains::Kot&>(getToolChain());
   const Driver &D = ToolChain.getDriver();
