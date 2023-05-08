@@ -5539,7 +5539,7 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
         TC = std::make_unique<toolchains::FreeBSD>(*this, Target, Args);
       break;
     case llvm::Triple::Kot:
-      TC = std::make_unique<toolchains::KotToolChain>(*this, Target, Args);
+      TC = std::make_unique<toolchains::Kot>(*this, Target, Args);
       break;
     case llvm::Triple::Minix:
       TC = std::make_unique<toolchains::Minix>(*this, Target, Args);
