@@ -147,7 +147,9 @@ void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC
   }
 
   if (!D.SysRoot.empty()) {
-    CC1Args.append({"-idirafter", DriverArgs.MakeArgString(D.SysRoot), "wrap.h"});
+    SmallString<128> P(D.SysRoot);
+    llvm::sys::path::append(P, "include");
+    addExternCSystemInclude(DriverArgs, CC1Args, P.str());
   }
 }
 
