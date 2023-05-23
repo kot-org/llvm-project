@@ -105,7 +105,7 @@ ToolChain::RuntimeLibType Kot::GetRuntimeLibType(const ArgList &Args) const{
 }
 
 ToolChain::UnwindLibType Kot::GetUnwindLibType(const ArgList &Args) const{
-  return ToolChain::UNW_CompilerRT;
+  return ToolChain::UNW_None;
 }
 
 ToolChain::CXXStdlibType Kot::GetCXXStdlibType(const ArgList &Args) const{
@@ -127,6 +127,7 @@ void Kot::addClangTargetOptions(const ArgList &DriverArgs, ArgStringList &CC1Arg
 
   CC1Args.push_back("-ffunction-sections");
   CC1Args.push_back("-fdata-sections");
+  CC1Args.push_back("-fno-rtti");
 }
 
 void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC1Args) const{
