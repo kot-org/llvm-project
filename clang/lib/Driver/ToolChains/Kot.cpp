@@ -50,7 +50,7 @@ void kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputI
     if(!Args.hasArg(options::OPT_shared)){
       if(!D.SysRoot.empty()){
         SmallString<128> P(D.SysRoot);
-        llvm::sys::path::append(P, "lib/crt0.o");
+        llvm::sys::path::append(P, "usr/lib/crt0.o");
         CmdArgs.push_back(Args.MakeArgString(P));
       }
     }
@@ -80,7 +80,7 @@ void kot::Linker::ConstructJob(Compilation &C, const JobAction &JA, const InputI
 Kot::Kot(const Driver &D, const llvm::Triple &Triple, const ArgList &Args):ToolChain(D, Triple, Args){
   if(!D.SysRoot.empty()){
     SmallString<128> P(D.SysRoot);
-    llvm::sys::path::append(P, "lib");
+    llvm::sys::path::append(P, "usr/lib");
     getFilePaths().push_back(std::string(P.str()));
   }
 }
@@ -139,7 +139,7 @@ void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC
 
   if(!DriverArgs.hasArg(options::OPT_nobuiltininc)){
     SmallString<128> P(D.ResourceDir);
-    llvm::sys::path::append(P, "include");
+    llvm::sys::path::append(P, "usr/include");
     addSystemInclude(DriverArgs, CC1Args, P);
   }
 
@@ -149,7 +149,7 @@ void Kot::AddClangSystemIncludeArgs(const ArgList &DriverArgs, ArgStringList &CC
 
   if (!D.SysRoot.empty()) {
     SmallString<128> P(D.SysRoot);
-    llvm::sys::path::append(P, "include");
+    llvm::sys::path::append(P, "usr/include");
     addExternCSystemInclude(DriverArgs, CC1Args, P.str());
   }
 }
@@ -162,7 +162,7 @@ void Kot::AddClangCXXStdlibIncludeArgs(const ArgList &DriverArgs, ArgStringList 
   switch(GetCXXStdlibType(DriverArgs)){
     case ToolChain::CST_Libcxx:{
       SmallString<128> P(getDriver().SysRoot);
-      llvm::sys::path::append(P, "include", "c++", "v1");
+      llvm::sys::path::append(P, "usr/include", "c++", "v1");
       addSystemInclude(DriverArgs, CC1Args, P.str());
       break;
     }
