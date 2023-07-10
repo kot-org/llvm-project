@@ -371,6 +371,7 @@ protected:
     // Kot defines; list based off of gcc output
     Builder.defineMacro("__Kot__");
     Builder.defineMacro("__unix__");
+    Builder.defineMacro("__linux__");
     Builder.defineMacro("__ELF__");
     if (Opts.POSIXThreads)
       Builder.defineMacro("_REENTRANT");
